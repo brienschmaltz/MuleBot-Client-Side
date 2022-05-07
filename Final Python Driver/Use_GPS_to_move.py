@@ -152,152 +152,148 @@ def main():
                 # This returns a bool that's true if it parsed new data (you can ignore it
                 # though if you don't care and instead look at the has_fix property).
                 gps.update()
-                # Every second print out current location details if there's a fix.
-                current = time.monotonic()
-                if current - last_print >= 1.0:
-                    last_print = current
-                    if not gps.has_fix:
-                        # Try again if we don't have a fix yet.
-                        print("Waiting for fix...")
-                        #display.lcd_display_string(output_getting_gps,1)
-                        #display.lcd_display_string(output_getting_gps2,2)
-                        continue
-                    # We have a fix! (gps.has_fix is true)
+                
+                if not gps.has_fix:
+                    # Try again if we don't have a fix yet.
+                    print("Waiting for fix...")
                     
-                    #The money
-                    lat = gps.latitude
-                    longitude = gps.longitude
+                    #Print message to lcd screen
+                    display.lcd_display_string(output_getting_gps,1)
+                    display.lcd_display_string(output_getting_gps2,2)
                     
-                    current_bot_position = (lat, longitude)
-                    current_distance = distance.distance(user_position, current_bot_position)
-                    print("Current Distance:", current_distance)
-                    print("\nCurrent Bot Lat:" , lat , "Long: ", longitude)
-                   
-                    #angle (in degrees) between the mulebot and the users position
-                    bearing = Geodesic.WGS84.Inverse(current_bot_position[0],current_bot_position[1],user_position[0],user_position[1])
-
+                    continue
                     
-                    #Calculate final bearing based off of azil. Not needed. Azil used for around the globe caluclations in flights.
-                    heading_needed = bearing['azi1']
-                    #heading_needed+=6.39
-                    #heading_needed -= 180
-                    if(heading_needed < 0):
-                        heading_needed+=360
-                        #heading_needed+=6.39
-                    #6.39 adjust heading to true north add or subtract depending on what is most accurate to our 
-
-                    print("\nCurrent Heading to user:" , heading_needed)
+                # We have a fix! (gps.has_fix is true)
+                
+                #The money
+                lat = gps.latitude
+                longitude = gps.longitude
+                
+                current_bot_position = (lat, longitude)
+                current_distance = distance.distance(user_position, current_bot_position)
+                print("Current Distance:", current_distance)
+                print("\nCurrent Bot Lat:" , lat , "Long: ", longitude)
+               
+                #angle (in degrees) between the mulebot and the users position
+                bearing = Geodesic.WGS84.Inverse(current_bot_position[0],current_bot_position[1],user_position[0],user_position[1])
 
                 
-                    magvals = sensor.magnetic
-                    normvals = normalize(magvals)
+                #Calculate final bearing based off of azil. Not needed. Azil used for around the globe caluclations in flights.
+                heading_needed = bearing['azi1']
+                #Adjust for true north
+                heading_needed+=6.39
+                if(heading_needed < 0):
+                    heading_needed+=360
+                    
+                print("\nCurrent Heading to user:" , heading_needed)
 
-                    # we will only use X and Y for the compass calculations, so hold it level!
-                    bot_heading = int(math.atan2(normvals[1], normvals[0]) * 180.0 / math.pi)
-                    # compass_heading is between -180 and +180 since atan2 returns -pi to +pi
-                    # this translates it to be between 0 and 360
-                    #bot_heading+= 180
-                    if(bot_heading < 0):
-                        bot_heading+=360
-                    print("\nCurrent Bot Heading: ", bot_heading)
+                #get Magnetometer readings
+                magvals = sensor.magnetic
+                normvals = normalize(magvals)
 
-                    #At this point, all variables are gathered, main logic can proceed.
-                    
-                    
-                    #Distance check before any movement. Slow down the bot and wait
-                    #if(current_distance < 0.005):
-                    #    kit.motor1.throttle = 0.5
-                    #    kit.motor2.throttle = 0.5
-                    #    time.sleep(2)
-                    #    print("Code got to Distance Check")
-                    #else:
-                        #Pass will continue onward. Bot is not close enough to the user.
-                        #continue
-                        
-                           
-                    #Start motor forward
-                    #kit.motor1.throttle = 0.9
-                    #kit.motor2.throttle = 0.9
-                        
-                    heading_difference = bot_heading - heading_difference
-                    print("\nHeading Difference:" , heading_difference )
-                    #time.sleep(3)
-                        
-                    #prev_heading_difference = heading_difference
-                                        
-                    #0 degrees is north
-                    #90 is west (I know this is weird, not sure, west/east seem flipped.)
-                    #180 is south
-                    #270 is east
-                    
-                    
-                    #Motor 2 is the motor not parallel with the gps antenna. So if facing ultrasonic sensor, one on the right.
-                    #Motor 1 makes bot turn left, or west
-                    #Motor 2 makes bot turn right, or 
-                    
-                    
-                    #We need to get the right heading first. 
-                    #heading_needed = 355 
-                    #bot_heading = 5. 
-                    # We want -10
-                    
+                # we will only use X and Y for the compass calculations, so hold it level!
+                bot_heading = int(math.atan2(normvals[1], normvals[0]) * 180.0 / math.pi)
+                # compass_heading is between -180 and +180 since atan2 returns -pi to +pi
+                # this translates it to be between 0 and 360
+                bot_heading+= 180
+                print("\nCurrent Bot Heading: ", bot_heading)
 
-                    if(heading_needed > bot_heading):
+                #At this point, all variables are gathered, main logic can proceed.
+                
+                
+                #Distance check before any movement. Slow down the bot and wait
+                #if(current_distance < 0.005):
+                #    kit.motor1.throttle = 0.5
+                #    kit.motor2.throttle = 0.5
+                #    time.sleep(2)
+                #    print("Code got to Distance Check")
+                #else:
+                    #Pass will continue onward. Bot is not close enough to the user.
+                    #continue
                     
-                        #true for 355
-                        #-(5) - (360 - 355)
-                        # -5 - 5 = -10
-                        heading_difference = -(botheading) - (360 - heading_needed)
-
-                    else: 
-                          
-                          heading_difference = 360-heading_needed + bot_heading
-                          
-
-                       #If difference  is greater than 180 need to make an adjustment
-                        abs(heading_difference)
-
-                    if(heading_difference > 10):
-                        #Bot is not heading in the user's general direction
+                       
+                #Start motor forward
+                kit.motor1.throttle = 0.9
+                kit.motor2.throttle = 0.9
                     
-                        if(11 <= heading_difference >= 179):
+                heading_difference = bot_heading - heading_difference
+                print("\nHeading Difference:" , heading_difference )
+                #time.sleep(3)
+
                                     
-                            #Turn bot west 
-                                  
-                            kit.motor1.throttle = 0.9
-                            kit.motor2.throttle = 0.0
-                            
-                            #kit.motor1.throttle = 0.0
-                            #kit.motor1.throttle = 0.0
+                #0 degrees is north
+                #90 is west (This is weird, not sure, west/east seem flipped.)
+                #180 is south
+                #270 is east
+                
+                
+                #Motor 2 is the motor not parallel with the gps antenna. So if facing ultrasonic sensor, one on the right.
+                #Motor 1 makes bot turn left, or west
+                #Motor 2 makes bot turn right, or 
+                
+                
+                #We need to get the right heading first. 
+                #heading_needed = 355 
+                #bot_heading = 5. 
+                # We want -10
+                
 
+                if(heading_needed > bot_heading):
+                
+                    #true for 355
+                    #-(5) - (360 - 355)
+                    # -5 - 5 = -10
+                    heading_difference = -(botheading) - (360 - heading_needed)
 
-                        if(180 <= heading_difference >= 360):
-                             
-                              #Turn bot east
-                            
-                              #kit.motor1.throttle = 0.0
-                              #kit.motor2.throttle = 0.0
-                            
-                              kit.motor1.throttle = 0.0
-                              kit.motor2.throttle = 0.9
-                    else:
-                        #heading in right direction
-                        #kit.motor1.throttle = 0.0
-                        #kit.motor2.throttle = 0.0
+                else: 
+                      
+                      heading_difference = 360-heading_needed + bot_heading
+                      
+
+                   #If difference  is greater than 180 need to make an adjustment
+                    abs(heading_difference)
+
+                if(heading_difference > 10):
+                    #Bot is not heading in the user's general direction
+                
+                    if(11 <= heading_difference >= 179):
+                                
+                        #Turn bot west 
+                              
                         kit.motor1.throttle = 0.9
-                        kit.motor2.throttle = 0.9
-                        sleep(2)
+                        kit.motor2.throttle = 0.0
                         
-                    print("\n-----------------\n")
+                        #kit.motor1.throttle = 0.0
+                        #kit.motor1.throttle = 0.0
 
-                    #output_distance = "Distance:" + str(current_distance)
-                    rounded_heading_needed = round(heading_needed, 2)
-                    output_heading_needed = "Usr_Dir: " + str(rounded_heading_needed)
-                    output_bot_heading = "Bot_Dir: " + str(bot_heading)
+
+                    if(180 <= heading_difference >= 360):
+                         
+                          #Turn bot east
+                        
+                          #kit.motor1.throttle = 0.0
+                          #kit.motor2.throttle = 0.0
+                        
+                          kit.motor1.throttle = 0.0
+                          kit.motor2.throttle = 0.9
+                else:
+                    #heading in right direction
+                    #kit.motor1.throttle = 0.0
+                    #kit.motor2.throttle = 0.0
+                    kit.motor1.throttle = 0.9
+                    kit.motor2.throttle = 0.9
+                    sleep(2)
                     
-                    
-                    #display.lcd_display_string(output_heading_needed,1)
-                    #display.lcd_display_string(output_bot_heading,2)
+                print("\n-----------------\n")
+
+                #output_distance = "Distance:" + str(current_distance)
+                rounded_heading_needed = round(heading_needed, 2)
+                output_heading_needed = "Usr_Dir: " + str(rounded_heading_needed)
+                output_bot_heading = "Bot_Dir: " + str(bot_heading)
+                
+                
+                display.lcd_display_string(output_heading_needed,1)
+                display.lcd_display_string(output_bot_heading,2)
 
 
                     
