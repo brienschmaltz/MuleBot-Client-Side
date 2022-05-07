@@ -1,3 +1,7 @@
+#Developed by Brien Schmaltz, Thien Nguyen
+#Client side code for raspberry pi robot.
+# Link to this scripts github: https://github.com/brienschmaltz/MuleBot-Client-Side
+# Link to mobile application the bot communicates with: https://github.com/brienschmaltz/Team-Projects-Mulebot-MobileApplication
 
 #GPS imports
 
@@ -34,7 +38,7 @@ import re
 from socket import *
 from time import sleep
 
-#Magnetometer Setup
+#Magnetometer Setup MUST USE the calibration script in the Magnetometer folder to get this value. 
 hardiron_calibration =[[-80.55, -16.349999999999998], [-29.849999999999998, 19.65], [-45.3, -29.7]]
 
 def main():
@@ -74,8 +78,6 @@ def main():
     
     #Socket Setup
     
-    #At Wright State use 10.16.17.237
-    #At Brien's home use 192.168.0.127
     HOST = "192.168.42.1" #
     PORT = 8080 #open port 8080 for connection
     s = socket(AF_INET, SOCK_STREAM)
@@ -90,8 +92,6 @@ def main():
 
     #------------------------------------------------
 
-    #lat, long of position directly north of my house. Its meijer :)
-    #user_position = (39.77727573402318, -84.07330391597307)
     
     output_not_following = "Not Following"
     output_following = "Following"
@@ -112,8 +112,6 @@ def main():
 
     sleep(1)
     display.lcd_clear()
-
-    last_print = time.monotonic()
 
     try:
             while True:
@@ -200,7 +198,7 @@ def main():
 
                 #At this point, all variables are gathered, main logic can proceed.
                 
-                
+                #Never implemented
                 #Distance check before any movement. Slow down the bot and wait
                 #if(current_distance < 0.005):
                 #    kit.motor1.throttle = 0.5
